@@ -6,15 +6,19 @@ from urllib.parse import urlparse
 
 def parse():
     parser = argparse.ArgumentParser()
-    #parser.add_argument("-p")
     parser.add_argument("start_url", type=str, help="Start url of the spider")
-
+    parser.add_argument("-p", "--proxy", type=str, help="Proxy to use")
     parser.add_argument("-r", "--rate_limit", type=float, default=1.0, help="Maximim number of http requests per second")
     return parser.parse_args()
 
-def get_all_links_on_page(url):
+def get_all_links_on_page(url, proxy):
     try:
-        reqs = requests.get(url)
+
+        proxies = {
+            'http': proxy,
+            'https': proxy,
+        }
+        reqs = requests.get(url) if proxy is None else requests.get(url, proxies=proxies)
     except:
         print(f"Could not load page: {url}")
         return []
@@ -52,7 +56,7 @@ def re_encode(url):
         url = url[:-1]
     return url 
 
-def run_spider(domain, rate_limit):
+def run_spider(domain, rate_limit, proxy):
     domain = re_encode(domain)
     domain_parsed = urlparse(domain)
     visited = []
@@ -76,7 +80,7 @@ def run_spider(domain, rate_limit):
 
             url = parsed.geturl()
             print(f"Visiting {url}")
-            found = get_all_links_on_page(url)
+            found = get_all_links_on_page(url, proxy)
             for link in found:
                 try:
                     link_netloc = urlparse(link).netloc
@@ -94,4 +98,6 @@ if __name__ == "__main__":
     args = parse()
     print(f"Using rate limit: {args.rate_limit}")
     domain = args.start_url
-    run_spider(domain, args.rate_limit)
+    proxy = args.proxy
+    print(f"Using proxy: {proxy}")
+    run_spider(domain, args.rate_limit, proxy)
