@@ -3,6 +3,7 @@ import requests
 import time
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
+import warnings
 
 def parse():
     parser = argparse.ArgumentParser()
@@ -18,7 +19,7 @@ def get_all_links_on_page(url, proxy):
             'http': proxy,
             'https': proxy,
         }
-        reqs = requests.get(url) if proxy is None else requests.get(url, proxies=proxies)
+        reqs = requests.get(url) if proxy is None else requests.get(url, proxies=proxies, verify=False)
     except:
         print(f"Could not load page: {url}")
         return []
@@ -95,6 +96,9 @@ def run_spider(domain, rate_limit, proxy):
     return visited
 
 if __name__ == "__main__":
+    # Warnings must be surpressed since unverified https generates a lot of warnings.
+    warnings.filterwarnings('ignore')
+
     args = parse()
     print(f"Using rate limit: {args.rate_limit}")
     domain = args.start_url
