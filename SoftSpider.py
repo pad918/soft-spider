@@ -13,17 +13,26 @@ def parse():
     return parser.parse_args()
 
 def get_all_links_on_page(url):
-    reqs = requests.get(url)
+    try:
+        reqs = requests.get(url)
+    except:
+        print(f"Could not load page: {url}")
+        return []
     soup = BeautifulSoup(reqs.text, 'html.parser')
     url_parse = urlparse(url)
     urls = []
     for link in soup.find_all('a'):
         link = link.get('href')
+        # Remove javascript:void(0)
+        
+
         link_parse = urlparse(link)
         if(link_parse.netloc == ''):
             link_parse = link_parse._replace(netloc = url_parse.netloc)
         link = link_parse.geturl()
         if(link is None or len(link)==0):
+            continue
+        if("javascript:void(0)" in link):
             continue
         link = url_without_parameters_and_fragments(link)
         link = re_encode(link)
